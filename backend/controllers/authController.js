@@ -2,12 +2,13 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const JWT_SECRET = process.env.JWT_SECRET; // Replace with a strong, unique secret
 
 // Generate JWT Token
 const generateToken = (user) => {
   return jwt.sign(
     { id: user.id, username: user.username },
-    process.env.JWT_SECRET,
+    JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRATION || '1h' }
   );
 };
@@ -38,8 +39,12 @@ const register = async (req, res) => {
       password: hashedPassword,
     });
 
-    res.status(201).json({ message: 'User registered successfully', userId: newUser.id });
+    res.status(201).json({ message: 'User registered successfully', data:{
+      user:{id: newUser.id, name: newUser.username, email: newUser.email}, 
+      token: generateToken({id: newUser.id, name: username})
+    } });
   } catch (error) {
+    console.log(error)
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
@@ -48,7 +53,7 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-
+    console.log(req.body)
     // Validate input
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
