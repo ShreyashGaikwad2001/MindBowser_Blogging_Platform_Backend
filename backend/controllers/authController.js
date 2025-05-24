@@ -17,7 +17,8 @@ const generateToken = (user) => {
 const register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
-
+    console.log(req.body);
+    
     // Validate input
     if (!username || !email || !password) {
       return res.status(400).json({ message: 'All fields are required' });
@@ -53,7 +54,6 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log(req.body)
     // Validate input
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
@@ -61,6 +61,7 @@ const login = async (req, res) => {
 
     // Find user by email
     const user = await User.findOne({ where: { email } });
+    console.error('User found:', user);
     if (!user) {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
@@ -68,6 +69,7 @@ const login = async (req, res) => {
     // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.log('Password mismatch:', { user , password});
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
@@ -86,9 +88,10 @@ const login = async (req, res) => {
     res.json({
       message: 'Login successful',
       token,  // <-- added token here
-      user: { id: user.id, username: user.username, email: user.email },
+      user: { id: user.id, name: user.username, email: user.email },
     });
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
